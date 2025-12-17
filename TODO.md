@@ -1,0 +1,4 @@
+- [x] Add missing axios import in SignUpForm.tsx
+- [x] Update baseURL in axiosInstance.ts to use environment variable
+- [x] Create vite-env.d.ts for TypeScript support (fixed env error)
+- [x] Test the application by running npm run dev (client builds successfully)

@@ -35,7 +35,7 @@ export function LoginForm() {
 
       if (res?.data?.token && res?.data?.user) {
         // store token + user
-        localStorage.setItem("token", res.data.token);
+       localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
         // update context
         login({ user: res.data.user, token: res.data.token });

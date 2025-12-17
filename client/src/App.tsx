@@ -9,6 +9,7 @@ import { LabDashboard } from './components/lab/LabDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { Toaster } from './components/ui/sonner';
+import { AuthContext } from './context/AuthContext';
 
 
 type UserRole = 'parent' | 'doctor' | 'therapist' | 'laboratory' | 'admin';
@@ -29,8 +30,21 @@ export default function App() {
 
   // login handler
   const handleLogin = (data: { user: User; token: string }) => {
-  login(data); // store user + token in AuthContext
-};
+    login(data); // store user + token in AuthContext
+  };
+
+  // demo login handler
+  const handleDemoLogin = (role: UserRole) => {
+    const mockUser: User = {
+      _id: 'demo-' + role,
+      fullName: `Demo ${role.charAt(0).toUpperCase() + role.slice(1)}`,
+      primaryRole: role,
+      roles: [role],
+      email: `${role}@demo.com`
+    };
+    const mockToken = 'demo-token-' + role;
+    login({ user: mockUser, token: mockToken });
+  };
 
   const handleLogout = () => {
     logout();
@@ -109,31 +123,31 @@ export default function App() {
               <p className="text-center text-sm text-gray-600 mb-3">Quick Demo Access</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleLogin('parent')}
+                  onClick={() => handleDemoLogin('parent')}
                   className="py-2 px-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg hover:from-pink-700 hover:to-purple-700 transition-all text-xs"
                 >
                   👨‍👩‍👧 Parent
                 </button>
                 <button
-                  onClick={() => handleLogin('doctor')}
+                  onClick={() => handleDemoLogin('doctor')}
                   className="py-2 px-3 bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-lg hover:from-teal-700 hover:to-blue-700 transition-all text-xs"
                 >
                   🧑‍⚕️ Doctor
                 </button>
                 <button
-                  onClick={() => handleLogin('therapist')}
+                  onClick={() => handleDemoLogin('therapist')}
                   className="py-2 px-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all text-xs"
                 >
                   🧑‍🏫 Therapist
                 </button>
                 <button
-                  onClick={() => handleLogin('laboratory')}
+                  onClick={() => handleDemoLogin('laboratory')}
                   className="py-2 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:from-cyan-700 hover:to-blue-700 transition-all text-xs"
                 >
                   🧪 Laboratory
                 </button>
                 <button
-                  onClick={() => handleLogin('admin')}
+                  onClick={() => handleDemoLogin('admin')}
                   className="col-span-2 py-2 px-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all text-xs"
                 >
                   🧑‍💼 Administrator

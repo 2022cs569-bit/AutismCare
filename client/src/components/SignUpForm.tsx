@@ -1,5 +1,5 @@
 // client/src/components/SignUpForm.tsx
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -8,6 +8,8 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Checkbox } from "./ui/checkbox";
 import { UserPlus, User, Users, Stethoscope, FlaskConical, Shield } from "lucide-react";
 import { toast } from "sonner";
+import axios from '../utils/axiosInstance';
+import { AuthContext } from "../context/AuthContext";
 
 
 type UserRole = "parent" | "doctor" | "therapist" | "laboratory" | "admin";
