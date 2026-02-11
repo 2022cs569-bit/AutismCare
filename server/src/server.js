@@ -35,10 +35,12 @@ const upload = multer({
 });
 
 // Middleware
-app.use(cors({
+const corsOptions = {
   origin: 'http://localhost:4173',
-  credentials: true
-}));
+  credentials: true, // allow cookies
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
