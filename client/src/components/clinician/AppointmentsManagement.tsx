@@ -19,65 +19,13 @@ interface Appointment {
   notes?: string;
 }
 
-const mockAppointments: Appointment[] = [
-  {
-    id: 1,
-    patientName: 'Emma Johnson',
-    patientAge: 4,
-    type: 'initial_assessment',
-    date: '2024-01-25',
-    time: '10:00',
-    duration: 60,
-    location: 'Room 101',
-    status: 'confirmed',
-    notes: 'First evaluation session'
-  },
-  {
-    id: 2,
-    patientName: 'Noah Smith',
-    patientAge: 3,
-    type: 'follow_up',
-    date: '2024-01-22',
-    time: '14:30',
-    duration: 45,
-    location: 'Room 102',
-    status: 'scheduled',
-    notes: 'Progress review after M-CHAT results'
-  },
-  {
-    id: 3,
-    patientName: 'Sophia Davis',
-    patientAge: 5,
-    type: 'therapy_session',
-    date: '2024-01-28',
-    time: '11:00',
-    duration: 50,
-    location: 'Room 103',
-    status: 'scheduled'
-  },
-  {
-    id: 4,
-    patientName: 'Liam Wilson',
-    patientAge: 2,
-    type: 'screening_review',
-    date: '2024-01-20',
-    time: '09:00',
-    duration: 30,
-    location: 'Room 101',
-    status: 'completed',
-    notes: 'ASQ-3 results discussed with parents'
-  }
-];
+const mockAppointments: Appointment[] = [];
 
 export function AppointmentsManagement() {
   const [selectedDate, setSelectedDate] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filteredAppointments = mockAppointments.filter(appointment => {
-    const matchesDate = selectedDate === 'all' || appointment.date === selectedDate;
-    const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
-    return matchesDate && matchesStatus;
-  });
+  const filteredAppointments = mockAppointments;
 
   const getStatusColor = (status: string) => {
     switch (status) {
