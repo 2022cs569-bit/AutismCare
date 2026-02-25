@@ -104,7 +104,6 @@ const createChild = async (req, res) => {
 
     // Find the parent user
     const user = await User.findById(userId);
-
     if (!user || user.role !== ROLES.PARENT) {
       return res.status(403).json({
         success: false,
@@ -118,7 +117,9 @@ const createChild = async (req, res) => {
     }
 
     user.children.push(childData);
-    await user.save();
+
+    // Use validateModifiedOnly to skip validation on fields not loaded (e.g. password)
+    await user.save({ validateModifiedOnly: true });
 
     // Return the newly created child
     const newChild = user.children[user.children.length - 1];
@@ -149,7 +150,6 @@ const updateChild = async (req, res) => {
 
     // Find the parent user
     const user = await User.findById(userId);
-
     if (!user || user.role !== ROLES.PARENT) {
       return res.status(403).json({
         success: false,
@@ -158,28 +158,27 @@ const updateChild = async (req, res) => {
     }
 
     // Find the child in the parent's children array
-    const childIndex = user.children.findIndex(child => child._id.toString() === childId);
-
-    if (childIndex === -1) {
+    const child = user.children.id(childId);
+    if (!child) {
       return res.status(404).json({
         success: false,
         message: 'Child not found'
       });
     }
 
-    // Update the child
+    // Update the child fields
     Object.keys(updateData).forEach(key => {
       if (updateData[key] !== undefined) {
-        user.children[childIndex][key] = updateData[key];
+        child[key] = updateData[key];
       }
     });
 
-    await user.save();
+    await user.save({ validateModifiedOnly: true });
 
     res.status(200).json({
       success: true,
       message: 'Child updated successfully',
-      data: user.children[childIndex]
+      data: { ...child.toObject(), id: child._id }
     });
   } catch (error) {
     console.error('Error updating child:', error);
@@ -198,7 +197,6 @@ const deleteChild = async (req, res) => {
 
     // Find the parent user
     const user = await User.findById(userId);
-
     if (!user || user.role !== ROLES.PARENT) {
       return res.status(403).json({
         success: false,
@@ -208,7 +206,6 @@ const deleteChild = async (req, res) => {
 
     // Find the child in the parent's children array
     const childIndex = user.children.findIndex(child => child._id.toString() === childId);
-
     if (childIndex === -1) {
       return res.status(404).json({
         success: false,
@@ -218,7 +215,7 @@ const deleteChild = async (req, res) => {
 
     // Remove the child from the array
     user.children.splice(childIndex, 1);
-    await user.save();
+    await user.save({ validateModifiedOnly: true });
 
     res.status(200).json({
       success: true,

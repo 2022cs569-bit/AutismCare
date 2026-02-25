@@ -65,6 +65,7 @@ export const screeningAPI = {
 
 // Lab API endpoints
 export const labAPI = {
+  // Lab technician endpoints
   getStats: () => API.get('/lab/stats'),
   getRequests: (params) => API.get('/lab/requests', { params }),
   getRequestById: (id) => API.get(`/lab/requests/${id}`),
@@ -75,7 +76,17 @@ export const labAPI = {
     }),
   updateStatus: (id, status) => API.patch(`/lab/requests/${id}/status`, { status }),
   getReportById: (id) => API.get(`/lab/reports/${id}`),
-  getAllReports: () => API.get('/lab/reports')
+  getAllReports: () => API.get('/lab/reports'),
+
+  // Clinician endpoints
+  getClinicianRequests: (params) => API.get('/lab/clinician/requests', { params }),
+  getClinicianRequestById: (id) => API.get(`/lab/clinician/requests/${id}`),
+  releaseReport: (id) => API.patch(`/lab/clinician/requests/${id}/release`),
+  searchParents: (search) => API.get('/lab/clinician/parents', { params: { search } }),
+  createTestRequest: (data) => API.post('/lab/clinician/requests', data),
+
+  // Parent endpoints
+  getParentReports: () => API.get('/lab/parent/reports')
 };
 
 // Appointment API endpoints

@@ -321,3 +321,320 @@ exports.getLabStats = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to retrieve statistics' });
     }
 };
+
+
+// ===================================================================
+// CLINICIAN-FACING ENDPOINTS
+// ===================================================================
+
+// -------------------------------------------------------------------
+// GET /api/lab/clinician/requests — test requests created by this clinician
+// -------------------------------------------------------------------
+exports.getClinicianTestRequests = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const filter = { clinicianId: req.user._id };
+        if (status && status !== 'ALL') filter.status = status;
+
+        const requests = await LabTestRequest.find(filter)
+            .populate('parentId', 'firstName lastName email phoneNumber')
+            .sort({ createdAt: -1 });
+
+        // For each request, attach its reports count
+        const requestIds = requests.map(r => r._id);
+        const reports = await LabReport.find({ testRequestId: { $in: requestIds } })
+            .select('testRequestId');
+
+        const reportCountMap = {};
+        reports.forEach(r => {
+            const key = r.testRequestId.toString();
+            reportCountMap[key] = (reportCountMap[key] || 0) + 1;
+        });
+
+        const data = requests.map(r => ({
+            ...r.toObject(),
+            reportCount: reportCountMap[r._id.toString()] || 0
+        }));
+
+        res.status(200).json({ success: true, data });
+    } catch (err) {
+        console.error('getClinicianTestRequests error:', err);
+        res.status(500).json({ success: false, message: 'Failed to retrieve test requests' });
+    }
+};
+
+// -------------------------------------------------------------------
+// GET /api/lab/clinician/requests/:id — single request detail for clinician
+// -------------------------------------------------------------------
+exports.getClinicianRequestById = async (req, res) => {
+    try {
+        const request = await LabTestRequest.findOne({
+            _id: req.params.id,
+            clinicianId: req.user._id
+        })
+            .populate('parentId', 'firstName lastName email phoneNumber');
+
+        if (!request) {
+            return res.status(404).json({ success: false, message: 'Test request not found' });
+        }
+
+        const reports = await LabReport.find({ testRequestId: request._id })
+            .populate('labTechnicianId', 'firstName lastName')
+            .sort({ uploadedAt: -1 });
+
+        res.status(200).json({ success: true, data: { ...request.toObject(), reports } });
+    } catch (err) {
+        console.error('getClinicianRequestById error:', err);
+        res.status(500).json({ success: false, message: 'Failed to retrieve test request' });
+    }
+};
+
+// -------------------------------------------------------------------
+// PATCH /api/lab/clinician/requests/:id/release — release report to parent
+// -------------------------------------------------------------------
+exports.releaseReport = async (req, res) => {
+    try {
+        const request = await LabTestRequest.findOne({
+            _id: req.params.id,
+            clinicianId: req.user._id
+        });
+
+        if (!request) {
+            return res.status(404).json({ success: false, message: 'Test request not found' });
+        }
+
+        if (request.status !== 'UPLOADED') {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot release: current status is ${request.status}. Only UPLOADED requests can be released.`
+            });
+        }
+
+        // Update status to RELEASED
+        request.status = 'RELEASED';
+        request.releasedToParent = true;
+        await request.save();
+
+        // Set releasedAt on all reports for this request
+        await LabReport.updateMany(
+            { testRequestId: request._id, releasedAt: null },
+            { releasedAt: new Date() }
+        );
+
+        // Audit log
+        await createAuditLog({
+            userId: req.user._id,
+            action: 'RELEASE',
+            resource: 'LabTestRequest',
+            resourceId: request._id,
+            details: `Clinician released lab report for ${request.childName} (${request.testType}) to parent`,
+            ipAddress: req.ip
+        });
+
+        // Notify parent via email
+        try {
+            const parent = await User.findById(request.parentId);
+            if (parent && parent.email) {
+                await sendEmail({
+                    to: parent.email,
+                    subject: 'Lab Report Released – AutismCare',
+                    text: `The lab report for your child ${request.childName} (${request.testType}) has been reviewed by your clinician and is now available for you to view.`
+                });
+            }
+        } catch (emailErr) {
+            console.error('Release notification failed:', emailErr.message);
+        }
+
+        res.status(200).json({ success: true, data: request, message: 'Report released to parent' });
+    } catch (err) {
+        console.error('releaseReport error:', err);
+        res.status(500).json({ success: false, message: 'Failed to release report' });
+    }
+};
+
+// -------------------------------------------------------------------
+// GET /api/lab/clinician/parents?search=... — search parents with children
+// -------------------------------------------------------------------
+exports.searchParentsWithChildren = async (req, res) => {
+    try {
+        const { search } = req.query;
+        if (!search || search.trim().length < 2) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide at least 2 characters to search'
+            });
+        }
+
+        const regex = new RegExp(search.trim(), 'i');
+
+        const parents = await User.find({
+            role: 'parent',
+            $or: [
+                { firstName: regex },
+                { lastName: regex },
+                { email: regex }
+            ]
+        })
+            .select('firstName lastName email phoneNumber children')
+            .limit(20);
+
+        // Transform children to include computed age
+        const data = parents.map(p => {
+            const parent = p.toObject();
+            parent.children = (parent.children || []).map(child => {
+                const now = new Date();
+                const dob = new Date(child.dateOfBirth);
+                const age = Math.floor((now - dob) / (365.25 * 24 * 60 * 60 * 1000));
+                return {
+                    _id: child._id,
+                    firstName: child.firstName,
+                    lastName: child.lastName,
+                    dateOfBirth: child.dateOfBirth,
+                    gender: child.gender,
+                    age
+                };
+            });
+            return parent;
+        });
+
+        res.status(200).json({ success: true, data });
+    } catch (err) {
+        console.error('searchParentsWithChildren error:', err);
+        res.status(500).json({ success: false, message: 'Failed to search parents' });
+    }
+};
+
+// -------------------------------------------------------------------
+// POST /api/lab/clinician/requests — create a new lab test request
+// -------------------------------------------------------------------
+exports.createTestRequest = async (req, res) => {
+    try {
+        const { parentId, childId, childName, childAge, testType, notes } = req.body;
+
+        // Validate required fields
+        if (!parentId || !childId || !childName || childAge == null || !testType) {
+            return res.status(400).json({
+                success: false,
+                message: 'parentId, childId, childName, childAge, and testType are required'
+            });
+        }
+
+        // Validate testType
+        const { TEST_TYPES } = require('../models/LabTestRequest');
+        if (!TEST_TYPES.includes(testType)) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid test type. Must be one of: ${TEST_TYPES.join(', ')}`
+            });
+        }
+
+        // Verify parent exists and has this child
+        const parent = await User.findOne({ _id: parentId, role: 'parent' });
+        if (!parent) {
+            return res.status(404).json({ success: false, message: 'Parent not found' });
+        }
+
+        const childExists = (parent.children || []).some(
+            c => c._id.toString() === childId.toString()
+        );
+        if (!childExists) {
+            return res.status(400).json({
+                success: false,
+                message: 'Child not found under this parent'
+            });
+        }
+
+        // Create the test request
+        const testRequest = await LabTestRequest.create({
+            childId,
+            childName,
+            childAge: Number(childAge),
+            parentId,
+            clinicianId: req.user._id,
+            testType,
+            notes: notes || '',
+            status: 'PENDING'
+        });
+
+        // Audit log
+        await createAuditLog({
+            userId: req.user._id,
+            action: 'CREATE',
+            resource: 'LabTestRequest',
+            resourceId: testRequest._id,
+            details: `Clinician created lab test request for ${childName} (${testType})`,
+            ipAddress: req.ip
+        });
+
+        // Notify parent via email
+        try {
+            if (parent.email) {
+                await sendEmail({
+                    to: parent.email,
+                    subject: 'New Lab Test Requested – AutismCare',
+                    text: `Your clinician has requested a ${testType} lab test for your child ${childName}. The lab will process this shortly.`
+                });
+            }
+        } catch (emailErr) {
+            console.error('Parent notification failed:', emailErr.message);
+        }
+
+        res.status(201).json({
+            success: true,
+            data: testRequest,
+            message: 'Lab test request created successfully'
+        });
+    } catch (err) {
+        console.error('createTestRequest error:', err);
+        res.status(500).json({ success: false, message: 'Failed to create test request' });
+    }
+};
+
+// ===================================================================
+// PARENT-FACING ENDPOINTS
+// ===================================================================
+
+// -------------------------------------------------------------------
+// GET /api/lab/parent/reports — released reports for the logged-in parent
+// -------------------------------------------------------------------
+exports.getParentReports = async (req, res) => {
+    try {
+        // Find all test requests that belong to this parent AND have been released
+        const requests = await LabTestRequest.find({
+            parentId: req.user._id,
+            status: 'RELEASED',
+            releasedToParent: true
+        })
+            .populate('clinicianId', 'firstName lastName email')
+            .sort({ updatedAt: -1 });
+
+        if (!requests.length) {
+            return res.status(200).json({ success: true, data: [] });
+        }
+
+        // Fetch reports for all released requests in one query
+        const requestIds = requests.map(r => r._id);
+        const reports = await LabReport.find({ testRequestId: { $in: requestIds } })
+            .populate('labTechnicianId', 'firstName lastName')
+            .sort({ uploadedAt: -1 });
+
+        // Group reports by testRequestId
+        const reportsByRequest = {};
+        reports.forEach(r => {
+            const key = r.testRequestId.toString();
+            if (!reportsByRequest[key]) reportsByRequest[key] = [];
+            reportsByRequest[key].push(r);
+        });
+
+        // Merge reports into requests
+        const data = requests.map(r => ({
+            ...r.toObject(),
+            reports: reportsByRequest[r._id.toString()] || []
+        }));
+
+        res.status(200).json({ success: true, data });
+    } catch (err) {
+        console.error('getParentReports error:', err);
+        res.status(500).json({ success: false, message: 'Failed to retrieve reports' });
+    }
+};
