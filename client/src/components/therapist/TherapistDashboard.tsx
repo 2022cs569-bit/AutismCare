@@ -1,39 +1,57 @@
 import { useState } from 'react';
-import { Home, Users, ClipboardList, Calendar, MessageSquare } from 'lucide-react';
+import { Home, Users, ClipboardList, Calendar, MessageSquare, TrendingUp } from 'lucide-react';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { TherapistHome } from './TherapistHome';
 import { TherapistClients } from './TherapistClients';
 import { TherapyPlans } from './TherapyPlans';
 import { TherapistSessions } from './TherapistSessions';
 import { TherapistMessages } from './TherapistMessages';
-import { TherapistAppointments } from './TherapistAppointments';
+import { TherapistProgress } from './TherapistProgress';
 
-type Section = 'home' | 'clients' | 'plans' | 'sessions' | 'messages' | 'appointments';
+type Section = 'home' | 'clients' | 'plans' | 'progress' | 'sessions' | 'messages';
 
 interface User {
   _id: string;
-  fullName: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
   primaryRole: 'parent' | 'doctor' | 'therapist' | 'laboratory' | 'admin';
   roles: Array<'parent' | 'doctor' | 'therapist' | 'laboratory' | 'admin'>;
   email: string;
 }
 
 interface TherapistDashboardProps {
-  user: User;
+  user?: User; // optional, so we can render dummy for now
   onLogout: () => void;
 }
 
 const navigation = [
-  { id: 'home', label: 'Dashboard', icon: Home, color: 'text-green-600' },
-  { id: 'clients', label: 'My Clients', icon: Users, color: 'text-blue-600' },
+  { id: 'home', label: 'Dashboard', icon: Home, color: 'text-purple-600' },
+  { id: 'clients', label: 'My Clients', icon: Users, color: 'text-purple-600' },
   { id: 'plans', label: 'Therapy Plans', icon: ClipboardList, color: 'text-purple-600' },
-  { id: 'appointments', label: 'Appointments', icon: Calendar, color: 'text-teal-600' },
-  { id: 'sessions', label: 'Sessions', icon: Calendar, color: 'text-orange-600' },
-  { id: 'messages', label: 'Messages', icon: MessageSquare, color: 'text-indigo-600' },
+  { id: 'progress', label: 'Progress Tracking', icon: TrendingUp, color: 'text-purple-600' },
+  { id: 'sessions', label: ' Therapy Sessions', icon: Calendar, color: 'text-purple-600' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, color: 'text-purple-600' },
 ];
 
 export function TherapistDashboard({ user, onLogout }: TherapistDashboardProps) {
+  // Safe dummy user if none provided
+  const safeUser: User = user ?? {
+    _id: '1',
+    firstName: 'Rabia',
+    lastName: 'Babar',
+    email: 'rabiababar@example.com',
+    primaryRole: 'therapist',
+    roles: ['therapist'],
+  };
+
   const [currentSection, setCurrentSection] = useState<Section>('home');
+
+  // Generate fullName and initials safely
+  const fullName = `${safeUser.firstName || ''} ${safeUser.lastName || ''}`.trim();
+  const initials = fullName
+    ? fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+    : 'JD';
 
   const handleSectionChange = (section: Section) => {
     setCurrentSection(section);
@@ -51,8 +69,8 @@ export function TherapistDashboard({ user, onLogout }: TherapistDashboardProps) 
         return <TherapistClients />;
       case 'plans':
         return <TherapyPlans />;
-      case 'appointments':
-        return <TherapistAppointments />;
+      case 'progress':
+        return <TherapistProgress />;
       case 'sessions':
         return <TherapistSessions />;
       case 'messages':
@@ -60,6 +78,7 @@ export function TherapistDashboard({ user, onLogout }: TherapistDashboardProps) 
       default:
         return <TherapistHome onNavigate={handleNavigate} />;
     }
+
   };
 
   return (

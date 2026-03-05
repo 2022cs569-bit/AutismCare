@@ -212,14 +212,14 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
             {/* Info cards row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 {/* Child Info */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-3">
                         <div className="p-2 rounded-lg bg-teal-50">
                             <Baby className="w-5 h-5 text-teal-600" />
                         </div>
                         <h3 className="text-sm font-semibold text-gray-700">Child Information</h3>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3 mt-1">
                         <div>
                             <p className="text-xs text-gray-400">Name</p>
                             <p className="text-sm font-medium text-gray-900">{request.childName}</p>
@@ -236,7 +236,7 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
                 </div>
 
                 {/* Clinician Info */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-3">
                         <div className="p-2 rounded-lg bg-blue-50">
                             <Stethoscope className="w-5 h-5 text-blue-600" />
@@ -244,7 +244,7 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
                         <h3 className="text-sm font-semibold text-gray-700">Clinician</h3>
                     </div>
                     {request.clinicianId ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3 mt-1">
                             <div>
                                 <p className="text-xs text-gray-400">Name</p>
                                 <p className="text-sm font-medium text-gray-900">
@@ -268,7 +268,7 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
                 </div>
 
                 {/* Parent Info */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-3">
                         <div className="p-2 rounded-lg bg-purple-50">
                             <User className="w-5 h-5 text-purple-600" />
@@ -276,7 +276,7 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
                         <h3 className="text-sm font-semibold text-gray-700">Parent / Guardian</h3>
                     </div>
                     {request.parentId ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3 mt-1">
                             <div>
                                 <p className="text-xs text-gray-400">Name</p>
                                 <p className="text-sm font-medium text-gray-900">
@@ -301,7 +301,7 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
             </div>
 
             {/* Test Details */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Test Details</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
@@ -333,7 +333,7 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
 
             {/* Upload Section (only show if status is PENDING) */}
             {request.status === 'PENDING' && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                     <h3 className="text-sm font-semibold text-gray-700 mb-4">Upload Lab Report</h3>
 
                     {/* Drag & Drop Zone */}
@@ -344,8 +344,8 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
                         onDrop={handleDrop}
                         onClick={() => fileInputRef.current?.click()}
                         className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${dragActive
-                                ? 'border-teal-400 bg-teal-50'
-                                : 'border-gray-200 hover:border-teal-300 hover:bg-gray-50'
+                            ? 'border-teal-400 bg-teal-50'
+                            : 'border-gray-200 hover:border-teal-300 hover:bg-gray-50'
                             }`}
                     >
                         <input
@@ -429,7 +429,7 @@ export function LabTestRequestDetail({ requestId, onBack }: LabTestRequestDetail
 
             {/* Existing Reports */}
             {request.reports && request.reports.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 className="text-sm font-semibold text-gray-700 mb-4">
                         Uploaded Reports ({request.reports.length})
                     </h3>

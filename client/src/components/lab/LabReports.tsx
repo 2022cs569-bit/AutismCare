@@ -84,7 +84,7 @@ export function LabReports() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {reports.map((report) => (
-                        <div key={report._id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                        <div key={report._id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                             {/* File icon + name */}
                             <div className="flex items-start gap-3 mb-4">
                                 <div className="p-2.5 rounded-lg bg-gradient-to-br from-teal-50 to-cyan-50 flex-shrink-0">
@@ -97,7 +97,7 @@ export function LabReports() {
                             </div>
 
                             {/* Metadata */}
-                            <div className="space-y-2 mb-4">
+                            <div className="space-y-3 mb-4">
                                 <div className="flex justify-between text-xs">
                                     <span className="text-gray-400">Child</span>
                                     <span className="text-gray-700 font-medium">{report.testRequestId.childName}</span>

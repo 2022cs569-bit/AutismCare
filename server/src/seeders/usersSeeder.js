@@ -9,21 +9,23 @@ const seedUsers = async () => {
     {
       firstName: "Parent",
       lastName: "One",
-      email: "parent1@example.com",
+      email: "akramhun04@gmail.com",
       phoneNumber: "+923001112233",
       password: "Password123",
-      role: "parent"
+      role: "parent",
+      isEmailVerified: true
     },
     {
       firstName: "Ali",
       lastName: "Khan",
-      email: "clinician1@example.com",
+      email: "lesstareen@gmail.com",
       phoneNumber: "+923001112244",
       password: "Password123",
       role: "clinician",
       specialization: "Pediatrics",
       licenseNumber: "DOC12345",
-      approvalStatus: "active"
+      approvalStatus: "active",
+      isEmailVerified: true
     },
     {
       firstName: "Sara",
@@ -34,7 +36,8 @@ const seedUsers = async () => {
       role: "therapist",
       specialization: "ABA Therapy",
       licenseNumber: "TH12345",
-      approvalStatus: "active"
+      approvalStatus: "active",
+      isEmailVerified: true
     },
     {
       firstName: "Lab",
@@ -44,7 +47,8 @@ const seedUsers = async () => {
       password: "Password123",
       role: "lab",
       labName: "AutismCare Lab",
-      accreditation: "ISO 9001"
+      accreditation: "ISO 9001",
+      isEmailVerified: true
     },
     {
       firstName: "Admin",
@@ -52,7 +56,8 @@ const seedUsers = async () => {
       email: "admin1@example.com",
       phoneNumber: "+923001112277",
       password: "Password123",
-      role: "admin"
+      role: "admin",
+      isEmailVerified: true
     }
   ];
 

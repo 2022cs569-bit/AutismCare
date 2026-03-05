@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Home, Users, ClipboardList, Calendar, MessageSquare } from 'lucide-react';
+import { Home, Users, ClipboardList, Calendar, MessageSquare, FlaskConical } from 'lucide-react';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { ClinicianHome } from './ClinicianHome';
 import { PatientManagement } from './PatientManagement';
 import { ScreeningReviews } from './ScreeningReviews';
 import { AppointmentsManagement } from './AppointmentsManagement';
 import { ClinicianMessages } from './ClinicianMessages';
+import { ClinicianLabReports } from './ClinicianLabReports';
 
-type Section = 'home' | 'patients' | 'screenings' | 'appointments' | 'messages';
+type Section = 'home' | 'patients' | 'screenings' | 'appointments' | 'messages' | 'lab-reports';
 
 interface ClinicianDashboardProps {
   user?: any;
@@ -18,6 +19,7 @@ const navigation = [
   { id: 'home', label: 'Dashboard', icon: Home, color: 'text-blue-600' },
   { id: 'patients', label: 'Patients', icon: Users, color: 'text-green-600' },
   { id: 'screenings', label: 'Screening Reviews', icon: ClipboardList, color: 'text-purple-600' },
+  { id: 'lab-reports', label: 'Lab Reports', icon: FlaskConical, color: 'text-teal-600' },
   { id: 'appointments', label: 'Appointments', icon: Calendar, color: 'text-orange-600' },
   { id: 'messages', label: 'Messages', icon: MessageSquare, color: 'text-indigo-600' },
 ];
@@ -41,6 +43,8 @@ export function ClinicianDashboard({ user, onLogout }: ClinicianDashboardProps) 
         return <PatientManagement />;
       case 'screenings':
         return <ScreeningReviews />;
+      case 'lab-reports':
+        return <ClinicianLabReports />;
       case 'appointments':
         return <AppointmentsManagement />;
       case 'messages':

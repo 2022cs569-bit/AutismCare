@@ -1,73 +1,200 @@
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Progress } from '../ui/progress';
-import { Users, Calendar, TrendingUp } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Progress } from "../ui/progress";
+import { toast } from "sonner";
 
 export function TherapistClients() {
+  const navigate = useNavigate();
+
   const clients = [
     {
       id: 1,
-      name: 'Emma Johnson',
+      name: "Rabia Babar",
       age: 4,
-      therapyType: 'Speech Therapy',
+      therapyType: "Speech Therapy",
       progress: 75,
       sessionsCompleted: 12,
       totalSessions: 15,
-      lastSession: '2024-11-02',
     },
     {
       id: 2,
-      name: 'Noah Smith',
+      name: "Amman Fatima",
       age: 3,
-      therapyType: 'Occupational Therapy',
+      therapyType: "Occupational Therapy",
       progress: 60,
       sessionsCompleted: 8,
       totalSessions: 12,
-      lastSession: '2024-11-01',
     },
   ];
 
+  // ---------------- ACTIVITY TEMPLATES ----------------
+  const activityTemplates = [
+    // Speech Therapy
+    {
+      id: "s1",
+      therapyType: "Speech Therapy",
+      title: "Eye Contact Practice",
+      description: "Maintain eye contact for 10 seconds",
+      duration: "10 min",
+    },
+    {
+      id: "s2",
+      therapyType: "Speech Therapy",
+      title: "Name Response Training",
+      description: "Respond when name is called",
+      duration: "15 min",
+    },
+    {
+      id: "s3",
+      therapyType: "Speech Therapy",
+      title: "Pronunciation Drills",
+      description: "Repeat words after therapist",
+      duration: "15 min",
+    },
+
+    // Occupational Therapy
+    {
+      id: "o1",
+      therapyType: "Occupational Therapy",
+      title: "Color Matching",
+      description: "Match same color cards",
+      duration: "20 min",
+    },
+    {
+      id: "o2",
+      therapyType: "Occupational Therapy",
+      title: "Hand Coordination",
+      description: "Stack blocks or beads",
+      duration: "15 min",
+    },
+    {
+      id: "o3",
+      therapyType: "Occupational Therapy",
+      title: "Sensory Play",
+      description: "Use textures and shapes to stimulate senses",
+      duration: "20 min",
+    },
+  ];
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [assignedActivities, setAssignedActivities] = useState<any[]>([]);
+
+  // ---------------- ASSIGN ACTIVITY ----------------
+  const handleAssignActivity = (activity: any) => {
+    const alreadyAssigned = assignedActivities.find(
+      (a) =>
+        a.activityId === activity.id &&
+        a.clientId === selectedClient.id
+    );
+
+    if (alreadyAssigned) {
+      toast.warning("Activity already assigned");
+      return;
+    }
+
+    setAssignedActivities((prev) => [
+      ...prev,
+      {
+        clientId: selectedClient.id,
+        activityId: activity.id,
+        title: activity.title,
+        assignedAt: new Date(),
+      },
+    ]);
+
+    toast.success("Activity assigned successfully");
+    setShowModal(false);
+  };
+
+  // ---------------- FILTER ACTIVITIES BY CLIENT THERAPY ----------------
+  const clientActivities = selectedClient
+    ? activityTemplates.filter(
+        (a) => a.therapyType === selectedClient.therapyType
+      )
+    : [];
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div>
-        <h2 className="text-green-600 mb-2">My Clients</h2>
-        <p className="text-gray-600">Manage your assigned clients and their therapy progress</p>
-      </div>
+    <motion.div
+      className="max-w-7xl mx-auto space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <h2 className="text-purple-600 text-xl font-semibold">
+        My Clients
+      </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {clients.map((client) => (
-          <Card key={client.id} className="hover:shadow-lg transition-shadow">
+          <Card key={client.id} className="hover:shadow-lg">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-blue-400 flex items-center justify-center text-white text-xl">
-                    {client.name[0]}
-                  </div>
-                  <div>
-                    <CardTitle className="text-green-600">{client.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{client.age} years • {client.therapyType}</p>
-                  </div>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>{client.name}</CardTitle>
+                  <p className="text-sm text-gray-500">
+                    {client.age} years • {client.therapyType}
+                  </p>
                 </div>
-                <Badge className="bg-green-600">Active</Badge>
+                <Badge className="bg-purple-600">Active</Badge>
               </div>
             </CardHeader>
+
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Progress</span>
-                  <span className="text-gray-900">
-                    {client.sessionsCompleted}/{client.totalSessions} sessions
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Progress</span>
+                  <span>
+                    {client.sessionsCompleted}/{client.totalSessions}
                   </span>
                 </div>
-                <Progress value={client.progress} className="h-2" />
+                <Progress value={client.progress} />
               </div>
-              
+
+              {/* Assigned Activities */}
+              {assignedActivities.filter(
+                (a) => a.clientId === client.id
+              ).length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-gray-600">
+                    Assigned Activities
+                  </p>
+
+                  {assignedActivities
+                    .filter((a) => a.clientId === client.id)
+                    .map((activity, i) => (
+                      <div
+                        key={i}
+                        className="flex justify-between items-center border rounded-md p-2"
+                      >
+                        <span className="text-sm">{activity.title}</span>
+                        <Badge className="bg-green-500">Assigned</Badge>
+                      </div>
+                    ))}
+                </div>
+              )}
+
               <div className="flex gap-2">
-                <Button className="flex-1 bg-green-600 hover:bg-green-700">
+                <Button
+                  className="flex-1 bg-green-600"
+                  onClick={() =>
+                    navigate(`/therapist/clients/${client.id}`)
+                  }
+                >
                   View Profile
                 </Button>
-                <Button variant="outline" className="flex-1">
+
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedClient(client);
+                    setShowModal(true);
+                  }}
+                >
                   Assign Activity
                 </Button>
               </div>
@@ -75,6 +202,54 @@ export function TherapistClients() {
           </Card>
         ))}
       </div>
-    </div>
+
+      {/* ---------------- ASSIGN MODAL ---------------- */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-[500px]">
+            <CardHeader>
+              <CardTitle>
+                Assign Activity to {selectedClient?.name} (
+                {selectedClient?.therapyType})
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {clientActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="border rounded-md p-3 flex justify-between items-center"
+                >
+                  <div>
+                    <p className="font-semibold">{activity.title}</p>
+                    <p className="text-sm text-gray-500">
+                      {activity.description}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Duration: {activity.duration}
+                    </p>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    onClick={() => handleAssignActivity(activity)}
+                  >
+                    Assign
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                variant="ghost"
+                className="w-full mt-2"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </motion.div>
   );
 }

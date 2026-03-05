@@ -64,6 +64,7 @@ const screeningRoutes = require('./routes/screening.routes.js');
 const labRoutes = require('./routes/lab.routes.js');
 const notificationRoutes = require('./routes/notification.routes.js');
 const appointmentRoutes = require('./routes/appointment.routes.js');
+const therapistRoutes = require('./routes/therapist.routes.js');
 
 
 const connectDB = require('./config/database.js');
@@ -76,6 +77,7 @@ app.use("/api/screening", screeningRoutes);
 app.use("/api/lab", labRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/therapist", therapistRoutes);
 
 
 const port = process.env.PORT || 4000;
