@@ -38,8 +38,12 @@ export function NotificationBell({ onViewAll, variant = 'default' }: Notificatio
   const [items, setItems] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const inFlightRef = useRef(false);
 
   const load = useCallback(async () => {
+    // Guard against rapid remounts / overlapping intervals.
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     try {
       setLoading(true);
       const { data } = await notificationAPI.list({ limit: 8, page: 1 });
@@ -50,14 +54,20 @@ export function NotificationBell({ onViewAll, variant = 'default' }: Notificatio
       // silent in topbar
     } finally {
       setLoading(false);
+      inFlightRef.current = false;
     }
   }, []);
 
   useEffect(() => {
+    if (!user?.token) return;
     load();
-    const id = window.setInterval(load, 30000);
+    const id = window.setInterval(() => {
+      // Don’t spam the API while tab is in background.
+      if (document.hidden) return;
+      void load();
+    }, 60000);
     return () => window.clearInterval(id);
-  }, [load]);
+  }, [load, user?.token]);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
